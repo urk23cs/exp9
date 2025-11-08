@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register - Library System</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f3f7fa; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+.form-container { background: #fff; padding: 36px 30px 24px 30px; border-radius: 12px; box-shadow: 0 8px 32px rgba(31,38,135,0.18); width: 350px; }
+h2 { margin-bottom: 18px; text-align: center; color: #365983; }
+input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 10px 14px; margin-bottom: 15px; border: 1px solid #bfc6d1; border-radius: 6px; background: #f7fafd; font-size: 15px; transition: border-color 0.2s; }
+input:focus { border-color: #6884ba; outline: none; }
+button, .nav-btn { width: 100%; padding: 10px 0; border: none; border-radius: 6px; background: #365983; color: #fff; font-size: 16px; cursor: pointer; transition: background 0.15s; margin-top:10px; }
+button:hover, .nav-btn:hover { background: #27426d; }
+#message { text-align: center; margin-top: 14px; font-size: 15px; }
+.nav-actions { margin-top: 16px; display: flex; gap: 10px; flex-direction: column; }
+</style>
+</head>
+<body>
+<div class="form-container">
+<h2>Register</h2>
+<form id="registerForm">
+<input type="text" name="full_name" placeholder="Full Name" required>
+<input type="email" name="email" placeholder="Email" required>
+<input type="text" name="username" placeholder="Username" required>
+<input type="password" name="password" placeholder="Password (min 6 chars)" required>
+<input type="password" name="confirm_password" placeholder="Confirm Password" required>
+<button type="submit">Register</button>
+</form>
+
+<div id="message"></div>
+
+<div class="nav-actions">
+<button class="nav-btn" id="toLogin">Login</button>
+<button class="nav-btn" id="toDashboard">Dashboard</button>
+</div>
+</div>
+
+<script>
+const form = document.getElementById('registerForm');
+const messageDiv = document.getElementById('message');
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    if (data.password.length < 6) {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = 'Password must be at least 6 characters.';
+        return;
+    }
+
+    if (data.password !== data.confirm_password) {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = 'Passwords do not match!';
+        return;
+    }
+
+    const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+        messageDiv.style.color = 'green';
+        messageDiv.textContent = result.message;
+        form.reset();
+        setTimeout(() => {
+            window.location.href = '/dashboard.html';
+        }, 1000);
+    } else {
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = result.message || (result.errors && result.errors.map(e => e.msg).join(', '));
+    }
+});
+
+document.getElementById('toLogin').onclick = () => {
+    window.location.href = '/index.html';
+};
+
+document.getElementById('toDashboard').onclick = () => {
+    window.location.href = '/dashboard.html';
+};
+</script>
+</body>
+</html>
